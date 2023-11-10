@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MJ Simon Says </title>
+
+    <audio id="sound1" src="Woah.mp3"></audio>
+    <audio id="sound2" src="Shamone.mp3"></audio>
+    <audio id="sound3" src="HeeHee.mp3"></audio>
+    <audio id="sound4" src="GoneBad.mp3"></audio>
+    <audio id="sound5" src="WinSound.wav"></audio>
+    <audio id="sound6" src="BOOM.mp3"></audio>
+    <style>
+
+h1 {
+  display: block;
+  font-size: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            height: 100vh;
+            margin: 0;
+            background-color: #b4b4b4;
+        }
+
+        #myCanvas {
+            cursor: crosshair;
+           
+        }
+
+        #startButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ffffff;
+            color: #D49137;
+            border: dashed;
+            cursor: crosshair;
+        }
+
+        #Directions {
+            font-size: 20px;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+
+        #scoreText {
+            font-size: 21px;
+            position: absolute;
+            top: 20px;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+  <h1>Michael Jackson Simon Says!</h1>
+    <canvas id="myCanvas" width="600" height="400"></canvas>
+    <button id="startButton">Start</button>
+    <p id="Directions"></p>
+    <p id="scoreText">Points: 0</p>
+    <script>
+      //create constants that NEVER CHANGE
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        const bWidth = canvas.width / 4;
+        const bHeight = canvas.height;
+        const colors = ["teal", "navy", "violet", "gold"];
+
+        let pattern = [];
+        let userClicks = [];
+        let isSequencePlaying = false;
+        let isPlayerTurn = false;
+        let score = 0;
+
+        
+        canvas.style.margin = "auto";
+
+        // Make the color blocks
+        for (let x = 0; x < 4; x++) {
+            ctx.fillStyle = colors[x];
+            ctx.fillRect(x * bWidth, 0, bWidth, bHeight);
+        }
+
+        const Directions = document.getElementById("Directions");
+        const startButton = document.getElementById("startButton");
+        const scoreText = document.getElementById("scoreText");
+
+
+   function handleCanvasClick(event) {
+            if (isPlayerTurn) {
+                const x = event.clientX - canvas.getBoundingClientRect().left;
+                const clickedColorIndex = Math.floor(x / bWidth);
+                userClicks.push(clickedColorIndex);
+		playColorAndSound(clickedColorIndex);
+                checkPlayerTurn();
+            }
+        }
+
+	// change whole screen to specific color
+	function playColorAndSound(colorIndex) {
+	    document.getElementById("sound" + (colorIndex + 1)).play(); // Play the sound
+	    document.body.style.backgroundColor = colors[colorIndex];
+	    setTimeout(function () {
+	        document.body.style.backgroundColor = "#b4b4b4";
+	    }, 1000); // Show each color for 1 second
+	}
+
+        
+
+        // if user clicks are not the same as computer
+        function checkPlayerTurn() {
+            for (let i = 0; i < userClicks.length; i++) {
+                if (userClicks[i] !== pattern[i]) {
+                  document.getElementById("sound6").play(); // Play the losing sound
+                    Directions.textContent = "WHO'S BAD? You..MJ said you lost :/ Total Points: " + score;
+                    score = 0;
+		    updateScore();
+                    startButton.style.display = "block";
+                    return;
+                }
+            }
+
+            if (userClicks.length === pattern.length) {
+              document.getElementById("sound5").play(); // Play the winning sound
+                Directions.textContent = "Great! Now its MR Smooth Criminal's Turn :)";
+                score++;
+                setTimeout(() => {
+                    Directions.textContent = "";
+                    NewPattern();
+                    playPattern();
+                }, 2000);
+            }
+            updateScore();
+        }
+
+        // Function to update the displayed score
+        function updateScore() {
+            scoreText.textContent = "Points: " + score;
+        }
+
+        // Function to add new color to pattern
+        function NewPattern() {
+            const randomColorIndex = Math.floor(Math.random() * colors.length);
+            pattern.push(randomColorIndex);
+        }
+
+        // Function to play the color pattern
+        function playPattern() {
+            isPlayerTurn = false;
+            isSequencePlaying = true;
+            userClicks = []; // empties user array
+            let i = 0;
+            const interval = setInterval(function () {
+                if (i < pattern.length) {
+		    playColorAndSound(pattern[i]);
+                    i++;
+                } else {
+                    isSequencePlaying = false;
+                    clearInterval(interval);
+                    Directions.textContent = "Your turn, Match MJ's Groove.";
+                    isPlayerTurn = true;
+                }
+            }, 1200); 
+        }
+
+        // makes 2 new arrays
+        function startGame() {
+            pattern = [];
+            userClicks = [];
+            startButton.style.display = "none";
+            isPlayerTurn = false;
+            NewPattern();
+            playPattern();
+        }
+
+        // Add  click events 
+        startButton.addEventListener("click", () => {
+            startButton.style.display = "none";
+            startGame();
+        });
+
+        
+        canvas.addEventListener("click", handleCanvasClick);
+
+        
+        Directions.textContent = "SHAMONE! Hit Start";
+	updateScore();
+    </script>
+</body>
+</html>
